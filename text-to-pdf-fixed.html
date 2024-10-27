@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Convertidor de Texto a PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: #fff;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: #00ff88;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .editor-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #editor {
+            width: 100%;
+            min-height: 400px;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            color: #fff;
+            font-size: 16px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        #editor:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #00ff88;
+        }
+
+        .button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            display: inline-block;
+        }
+
+        .button:hover {
+            background: #00cc6a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .stats {
+            margin-top: 15px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Convertidor de Texto a PDF</h1>
+            <p class="subtitle">Transforma tu texto en documentos PDF profesionales</p>
+        </div>
+        
+        <div class="editor-container">
+            <textarea id="editor" placeholder="Escribe o pega tu texto aquí..."></textarea>
+            <div class="stats">
+                Caracteres: <span id="charCount">0</span> | 
+                Palabras: <span id="wordCount">0</span>
+            </div>
+            <button class="button" onclick="generatePDF()">Convertir a PDF</button>
+        </div>
+    </div>
+
+    <script>
+        const editor = document.getElementById('editor');
+        const charCount = document.getElementById('charCount');
+        const wordCount = document.getElementById('wordCount');
+
+        editor.addEventListener('input', updateStats);
+
+        function updateStats() {
+            const text = editor.value;
+            charCount.textContent = text.length;
+            wordCount.textContent = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const text = editor.value;
+            if (text.trim() === '') {
+                alert('Por favor, ingresa algún texto antes de convertir a PDF.');
+                return;
+            }
+
+            // Configurar el texto
+            doc.setFont('helvetica');
+            doc.setFontSize(12);
+
+            // Dividir el texto en líneas
+            const lines = doc.splitTextToSize(text, 180); // 180 es el ancho máximo en pts
+
+            // Variables para el control de páginas
+            let yPosition = 20;
+            const lineHeight = 7;
+            const pageHeight = doc.internal.pageSize.height - 20; // Margen inferior de 20
+
+            // Agregar líneas al PDF
+            for (let i = 0; i < lines.length; i++) {
+                if (yPosition + lineHeight > pageHeight) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                doc.text(lines[i], 15, yPosition);
+                yPosition += lineHeight;
+            }
+
+            // Guardar el PDF
+            doc.save('documento.pdf');
+        }
+    </script>
+</body>
+</html>
